@@ -1,0 +1,196 @@
+\chapter{Arquitectura}
+\label{chap:arquitectura}
+
+En este capítulo se presentará la estructura del proyecto, planteando en primer lugar la estructura global, y analizando posteriormente las fases de desarrollo del proyecto, así como la estructura y componentes de este, y el proceso que se ha seguido para su diseño y desarrollo. 
+
+\section{Visión general}
+En la figura \ref{fig:arquitecture-diagram} se muestra una representación de estructura global del sistema. Por simplicidad y claridad, se muestra la interacción que habría entre dos usuarios, en la que un usuario \textit{User1} se comunica con el otro usuario \textit{User2}, pese a que esta comunicación es bidireccional y puede ir en cualquiera de los sentidos. Se puede comprobar en esta figura como los distintos módulos se comunican entre sí, y también las principales herramientas externas de las que hacen uso.
+
+
+\begin{figure}[!h]
+\begin{center}
+\includegraphics[width=1.1\textwidth]{./figures/arquitecture-diagram.png}
+\caption[Arquitectura del sistema]{Arquitectura del sistema}
+\label{fig:arquitecture-diagram}
+\end{center}
+\end{figure}
+
+
+A continuación se analizarán los módulos del sistema:
+
+
+\subsubsection{Módulo aplicación}
+El principal propósito de la aplicación, es el de proporcionar una interfaz que presente las características necesarias para permitir al usuario comunicarse con otros, incluyendo el uso de imágenes. Esta interfaz será la encargada de interactuar con el usuario, presentándole todas las opciones de las que dispone el sistema. Gestionará tanto la configuración inicial del sistema como la posterior comunicación con otros usuarios. Se comunica con otros tres módulos. Utiliza el módulo de gestión de usuarios para gestionar el alta en el sistema del usuario y la sincronización con los contactos. El módulo de comunicaciones provee de los medios necesarios para enviar un mensaje a otro usuario. Finalmente el módulo de recomendación será empleado cuando el usuario quiera buscar una imagen, presentando una colección de posibles candidatas.
+
+
+\subsubsection{Módulo de usuarios}
+El módulo de usuarios es el encargado de gestionar toda la información relativa a los usuarios. Proporciona los mecanismos necesarios para poder dar de alta y sincronizar usuarios, así como para poder relacionar el número de teléfono de estos usuarios con el identificador necesario para poder hacer llegar el mensaje enviado por el usuario. Una vez obtenido el identificador envía el mensaje utilizando la \acs{API} \acs{GCM}. Otra labor importante de este módulo, es la de proporcionar la información relativa a los usuarios que sea necesaria para el modulo de recomendaciones, así como de actualizar esa información cuando existan cambios que así lo indiquen. 
+
+\subsubsection{Módulo de comunicación}
+Como su propio nombre indica, este módulo es el encargado de gestionar las comunicaciones entre los usuarios. Cuando el usuario envía un mensaje, este es contendrá entre otras cosas el número de teléfono del destinatario así como toda la información relativa al mensaje. Este módulo se encargará de obtener el identificador necesario que debe proporcionar al sistema de \ac{GCM}, haciendo uso para ello del módulo de gestión de usuarios.
+
+
+\subsubsection{Módulo de gestión de imágenes}
+El principal propósito de este módulo es el de proporcionar una interfaz al módulo de recomendaciones, de manera que este tenga acceso las imágenes que se encuentran actualmente en el sistema, así como de proporcionar de una nueva fuente de imágenes. Permite filtrar estas imágenes según los criterios que establezca el sistema de recomendación, además de almacenar y actualizar la información necesaria para que el sistema de recomendación pueda aplicar los algoritmos correspondientes. También se encarga de almacenar en el Blobstore las nuevas imágenes.
+
+\subsubsection{Módulo de recomendación}
+Este es el módulo encargado de recomendar imágenes al usuario a partir de una entrada proporcionada por este. Analizando el perfil del usuario que proporcione el modulo de usuarios, así como la información relativa a las imágenes, este módulo filtrará entre aquellas imágenes que se encuentren actualmente disponibles en el sistema y las imágenes que proporcionen los mecanismos externos. También será el encargado de indicar al módulo de gestión de imágenes de los cambios que debe realizar sobre la información que contiene de estas. 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+\section{Sistema de recomendación}
+El sistema de recomendación de imágenes es el componente más importante de este proyecto, y el que aporta a la aplicación de mensajería desarrollada la diferenciación respecto al resto que existen actualmente en el mercado. También es el componente que mayor complejidad computacional posee del proyecto, y por tanto se ha considerado necesario explicarlo con mayor detenimiento.
+
+
+\subsection{Procesamiento de la entrada}
+Atendiendo al carácter de la entrada es necesario aplicar un preprocesamiento de esta para poder tratar con ella. Esto es debido a que los usuarios pueden introducir la petición o consulta en un formato muy variado, ya que se trata de lenguaje natural.
+
+\subsubsection{Limpieza de la entrada}
+
+
+En primer lugar es necesario realizar una limpieza de la misma. En esta limpieza, entre otras cosas, se eliminarán aquellas palabras o elementos que no aporten nada, como las preposiciones, pronombres, artículos, etc., dejando únicamente los nombres, verbos, adjetivos y adverbios, que para nuestro caso son los elementos que aportan utilidad, mientras que los otros aportan ruido.
+
+Por otra parte, también se hace necesario tratar aquellas palabras que si han pasado el proceso de selección (nombres, verbos, adjetivos y adverbios), y preprocesarlas de manera que se eliminen las diferencias entre los plurales y los singulares (pasando todo a singular) o pasando los verbos a su forma en infinitivo.
+
+Puede darse la situación en que al \textit{limpiar} aquellas palabras de elementos como prefijos o sufijos aparezcan varias opciones alternativas sobre las que esa palabra se puede reducir. En este caso se seguirá el criterio que establece Wordnet y se escogerá la primera opción por considerarse la más probable.
+
+La salida de este proceso será la consulta que se utilice cuando se recurra a proveedores externos para buscar imágenes.\\
+
+
+\subsubsection{Expansión de la entrada}
+
+
+En segundo lugar encontramos el proceso de expansión de esta entrada. Debido a que diversos usuarios pueden hacer referencia al mismo elemento de diferentes maneras, por ejemplo, algunos pueden utilizar la palabra \textit{colegio} mientras que otros pueden utilizar \textit{escuela} refiriéndose a lo mismo, y la misma imagen puede ser perfecta para ambos usuarios.
+
+Por este motivo, se hace necesario procesar dicha entrada, buscando para todas aquellas palabras que han pasado el filtro inicial sinónimos y palabras relacionadas. Encontramos aquí un problema notable debido al hecho de que la mayoría de las palabras suelen tener varias acepciones, tanto en inglés como en español, y además una misma palabra puede ser a la vez un nombre, un verbo, un adjetivo y/o un adverbio. Esto implica que una misma palabra puede tener diferentes sinónimos o palabras relacionadas en función de aquella de las acepciones que tomemos.
+
+Generalmente para nuestro caso no afectará aquella ambiguación referente a la diferencia de verbo y nombre, ya que en inglés, aquellos nombres que se derivan de un verbo representan ese verbo, como por ejemplo \textit{run} en inglés, puede significar tanto correr como carrera, pero la imagen necesaria para representar el concepto representará normalmente tanto al nombre como al verbo. Respecto a esto, y debido a la naturaleza propia de las imágenes se escogerá siempre en primer lugar la acepción referente a los nombres, ya que será aquella con la que más se trabaje. En caso de no existir una definición referente a esa palabra como nombre, lo cual implicaría que esa palabra nunca puede ser un nombre, se recurriría en segundo lugar a las acepciones de verbo, en caso de que tampoco existan acepciones de esa palabra que sean verbos se recurriría a adjetivos y finalmente si esto tampoco funciona a adverbios. 
+
+Respecto a la existencia de varias acepciones de la misma forma gramatical, es dónde surgen mayores problemas. Volviendo al caso de antes, \textit{run} en inglés, puede significar una simple carrera realizada a pie, o, en el contexto del fútbol americano, una jugada en la que un jugador intenta pasar el balón a través del equipo contrario, además de otras muchas acepciones como sustantivo. En numerosas ocasiones, esta diferencia de definición hace referencia a palabras que han adquirido el mismo nombre por ciertas relaciones semánticas o históricas, y aunque distintas es su definición exacta, están muy relacionadas, por lo que la selección de una acepción no es tan crucial. Sin embargo, en muchos otros casos, las diferentes acepciones no se limitan a este tipo de relaciones, y una misma palabra puede referirse a dos conceptos muy distintos. Por ejemplo, la palabra \textit{mean} como adjetivo puede significar tanto ser mezquino, como la media estadística. 
+
+En el caso de este proyecto y atendiendo a sus limitaciones, se ha decidido recurrir a la opción de escoger la primera acepción que aparezca en cada caso. Como se verá más adelante, aquí es donde nos encontramos con una de las posibilidades más interesantes de mejora del sistema, tanto para reconocer la forma gramatical de la que se trata, como para reconocer a partir del contexto su significado semántico, pudiendo aplicar para ello procedimientos más sofisticados. 
+
+Respecto a la aplicación de estos sinónimos, se utilizarán únicamente con aquellos recursos que se encuentren en el sistema. Esto quiere decir que no se utilizarán estas palabras extras en las búsquedas de proveedores externos. El motivo de este mecanismo de actuación, es debido a que sería tanto computacionalmente como en términos monetarios muy costoso aplicar estos mecanismos a la búsqueda por ejemplo en \acs{GSE}, ya que para cada palabra sería necesario realizar una nueva búsqueda, con todo lo que ello conlleva. Además, en este caso, Google ya realiza un procesamiento propio en las búsquedas. Si bien, cuando un usuario seleccione una imagen que proceda de un medio ajeno, y esta se incluya en el sistema, en este caso si se incluirán estas nuevas palabras como palabras clave de la imagen. A continuación, se mostrarán los diferentes perfiles relevantes para el sistema de recomendación, así como las técnicas aplicadas, y se podrá observar en más detalle como se tratan todas estas nuevas palabras a las que se llamará palabras clave.
+
+
+\subsection{Técnicas empleadas}
+En esta sección se presentarán las técnicas empleadas que se vieron en la sección \ref{sec:tecnicas-recomendacion}, así como los mecanismos de hibridación utilizados para combinar estas técnicas.
+
+En primer lugar es necesario indicar que el contenido de las valoraciones en este caso será principalmente binario, considerándose la selección de una imagen como valoración positiva y la no selección como negativa. Sin embargo, en este proyecto se usará únicamente la información referente a las valoraciones positivas, es decir, se tendrá en cuenta para los diferentes algoritmos únicamente la información correspondiente a las imágenes utilizadas por los usuarios.
+
+Respecto a las técnicas de recomendación empleadas son las siguientes:\\
+
+\subsubsection{Basada en contenido}
+
+
+Por un lado tenemos la técnica de recomendación basada en contenido. Como se ha mencionado anteriormente, esta tipo de técnica busca relaciones entre elementos que ya han sido positivamente valorados por el usuario y los nuevos elementos que están en el proceso de selección para la recomendación, y escoge aquellos que según cierto criterio más se asemejen a los ya valorados.
+
+En este caso, esta técnica valorará la información sobre las imágenes que ya han sido seleccionadas por el usuario, comprobando si existe relación entre estas, y creando un perfil para este usuario. Así, el perfil de una imagen usada (\textit{ImagenUsada} por un usuario estará compuesto del identificador de la imagen, junto con un contador del número de veces que ha utilizado esa imagen. 
+
+Por otra parte la información relativa a la \textit{Imagen}, la cual podemos identificar como el perfil de la imagen, será la que se muestra a continuación:
+
+\begin{itemize}
+\item identificador\textunderscore blob: Es el identificador que permite recuperar la imagen que esta almacenada en el Blobstore.
+\item etiquetas: Las etiquetas que proporciona Google Cloud Vision sobre la imagen.
+\item palabras\textunderscore clave: Las palabras utilizadas en las búsquedas por los usuarios que hayan seleccionado esa imagen. Esto incluye también aquellas palabras relacionadas que se han extraído utilizando la herramienta Wordnet.
+\item enlace: El enlace completo donde se encontraba el recurso originalmente.
+\item enlace\textunderscore sitio: El enlace del sitio web de cual se tomó la imagen.
+\end{itemize}
+
+Se usará la información referente a los sitios web para conocer las preferencias y gustos de los usuarios por ciertos sitios web en concreto. Esto se usará en las búsquedas de nuevas imágenes, especificando búsquedas en aquellos sitios web que contienen o contenían imágenes previamente seleccionadas por este. Estos perfiles o entidades ayudarán a comprender la estructura del sistema, así como a entender el funcionamiento del algoritmo que se describirá más adelante.\\
+
+\subsubsection{Colaborativa}
+
+
+También se va a aplicar la técnica colaborativa. Esta técnica establece relaciones entre los usuarios basándose en los elementos que han valorado previamente. Posteriormente, cuando un usuario solicita una recomendación o el sistema le ofrece una, se analiza la relación existente entre ese usuario y otros que hayan valorado ítems en los que el usuario pueda estar interesado, y le recomienda uno o varios de estos ítems.
+
+Respecto a la adaptación de esta técnica en este proyecto, la relación entre los usuarios se medirá atendiendo a las imágenes que estos han utilizado (en este caso es lo mismo que valorar positivamente). 
+
+Se valorará una única vez el hecho de que dos usuarios utilicen una misma imagen, es decir, si ambos usuarios valoran positivamente la misma imagen varias veces, a efectos de la relación existente entre estos usuarios para esta técnica, será igual que si ambos han valorando positivamente la imagen una única vez. Esto se hace de esta manera para que una sola imagen introduzca tanto ruido que ambos usuarios parezcan similares al sistema pese a que solo coincidan en esto. Así pues, el grado de relación o de semejanza entre dos usuarios se medirá en función del número de imágenes en común que estos hayan utilizado.
+
+Para cada relación de usuarios (\textit{UsuariosRelacionados}) se creará una entidad que contenga un identificador de cada usuario junto con el grado de relación existente entre ellos. El perfil de un \textit{Usuario} está determinado por lo siguiente:
+
+\begin{itemize}
+\item numero\textunderscore telefono: Número de teléfono del usuario.
+\item identificador\textunderscore comunicaciones: Identificador de registro, necesario para el sistema de comunicaciones
+\item palabras\textunderscore clave: Utilizadas por los usuarios en sus búsquedas. Esto incluye también aquellas palabras relacionadas que se han extraído utilizando la herramienta Wordnet.
+\item imagenes\textunderscore utilizadas: identificador de la imagen junto con un contador).
+\end{itemize}
+
+Además de estas relaciones, existen otras que son auxiliares a estas y que utilizarán en el pseudocódigo. Están las \textit{PalabrasClave}, que contienen una palabra clave junto con el número de veces que ha sido empleado. Y por último la \textit{Etiqueta}, que contiene una etiqueta proporcionada por Google Cloud Vision junto con una probabilidad que este aporta de que el término se corresponda con la imagen. 
+
+En el listado \ref{code:imagenSeleccionadaPseudo} se muestra el pseudocódigo referente a los procesos que se ejecutan cada vez que una imagen es seleccionada, y que modifican la información referente a esa imagen y al usuario, así como a las relaciones entre estos. Este pseudocódigo muestra una versión simplificada, aislando de los detalles de la implementación y la tecnología usada, y mostrando únicamente el proceso de manera más abstracta.
+
+Cada vez que se seleccione una imagen, se comprueba si esta ya se encuentra en el sistema. En caso de no encontrarse aún, crea un blob para almacenarla, y la sube al sistema. Además añade la información que será estática en el sistema, como son el enlace, enlace del sitio y las etiquetas de Google Cloud Vision. Después, y al igual que haría si la imagen existiese en el repositorio propio, actualiza la información referente a las palabras clave que han sido empleadas en este caso. Esta actualización se hace tanto para la imagen como para el propio usuario, ya que cada perfil lleva un registro de las palabras utilizas (por uno en el caso del usuario y empleadas en el otro en el caso de la imagen), junto con el número de veces que se han empleado. En el pseudocódigo mostrado, solo existe un método de actualización que será válido para los dos tipos de entidades. De esta manera, si no se han utilizado nunca se añaden con valor uno, y si ya han sido utilizadas se incrementa el contador.
+
+Además de actualizar las etiquetas es necesario realizar otras modificaciones respecto de las relaciones existentes entre los usuarios, y entre los usuarios y las imágenes que han utilizado. Cada usuario tiene un registro de las imágenes que este ha seleccionado junto con el número de veces que lo ha hecho, y por tanto se actualiza cada vez que se añade una imagen en caso de que ya la haya utilizado alguna vez, o por el contrario se crea una nueva referencia inicializando el contador.
+
+Respecto a la relación entre usuarios, como se ha mencionado anteriormente, por cada imagen que dos usuarios tienen en común, su relación gana fuerza. 
+
+
+\newpage
+
+\lstinputlisting[texcl, caption = {Actualización de la información tras la selección de una imagen}, language = Python, label = code:imagenSeleccionadaPseudo]{code/imagenSeleccionadaPseudo.py}
+%Código referente a la actualización de la relación entre usuarios
+
+
+%Si aplicamos lo de hiepronimos o algo de eso se puede hacer basada en conocimiento
+Actualización de la información tras la selección de una imagen
+\subsubsection{Hibridación}
+
+
+Por último, se hace necesario aplicar alguno de los mecanismos de hibridación vistos en la sección \ref{sec:sistemas-hibridos} para combinar las técnicas que se han decidido utilizar. En este caso se ha decidido emplear un sistema conmutado. En este tipo de sistemas, se combinan en la salida recomendaciones de todas las técnicas que se emplean, pudiendo aportar cada una de las técnicas un mayor o un menor número de elementos en función del mecanismo que se decida implantar.
+
+En este caso, se ha decidido utilizar este mecanismo debido a que las recomendaciones proporcionadas por todas las técnicas son útiles en todo momento, ya sea en mayor o menor medida. Siempre será útil disponer de nuevas imágenes de manera que el sistema no sufra de sobreespecialización y se quede estancado con las imágenes que tenga, y será necesario buscar estas para lo que la técnica basada en contenido será de gran utilidad. Posteriormente, cuando la cantidad de imágenes de las que se disponga en el repositorio propio empiece a aumentar también irá siendo cada vez más útil aquellas imágenes proporcionadas por la técnica colaborativa. De esta manera, permite adaptar en cada momento que técnica tiene mayor relevancia, y dar mayor peso a esta, sin dejar de aprovechar las ventajas que aportan las demás. 
+
+Cuando el sistema comienza a funcionar únicamente se dispone de las primeras imágenes que se encuentran en el sistema que son los pictogramas, y de aquellas proporcionadas por los proveedores externos. De esta manera, al comienzo de su puesta en marcha, el sistema se limitará a ser un sistema de filtrado de imágenes, sin aportar ningún rasgo de personalización a los usuarios.
+
+Conforme el usuario empiece a utilizar en mayor medida el sistema, este será capaz de aprender de los gustos de los usuarios y comenzarán a cobrar mayor importancia, lo cual resultará en mayor número de imágenes aportadas por este tipo de técnica en la salida final que se le proporcionará al usuario. Al igual que en este caso, cuando el número de usuarios se expanda, y aumente la relación entre estos, será la técnica colaborativa la que pase a aportar mayor peso en las recomendaciones.
+
+
+\subsection{Algoritmo}
+
+Respecto al algoritmo de recomendación, en el listado \ref{code:algoritmo-recomendacion} se muestra una versión más simple del código en la que se aislan de los detalles propios de la tecnología utilizada. 
+
+En primer lugar, aparecen los valores de unas constantes que nos permitirán configurar el número máximo de imágenes que se recomendarán al usuario en total, así como el máximo número de imágenes que proporcionará cada uno de las técnicas de recomendación. Más adelante, se verá como existen mecanismos para controlar que si una técnica no es lo suficientemente confiable con los datos que tiene, aportará menos imágenes de este máximo. Los valores de estas constantes se pueden adaptar en caso de considerarse necesario dar más importancia a alguna de estas técnicas.
+
+En el caso de la técnica colaborativa por ejemplo, es necesario establecer un valor mínimo para la relación entre los usuarios, ya que si no, puede darse el caso de que ambos hayan valorado tan solo unas pocas imágenes en común por casualidad pero sus gustos difieran enormemente. Lo mismo ocurre con la técnica basada en contenido, sí el usuario ha seleccionado imágenes de numerosos portales y no tiene una clara predilección por ninguno, esta técnica puede no aportar valor útil.
+
+Usando la aplicación de la técnica colaborativa se procederá en primer lugar a obtener aquellas imágenes que contienen las palabras clave que el usuario ha introducido. Posteriormente se obtendrán todos aquellos usuarios que hayan seleccionado en algún momento alguna de las  imágenes que se encuentran el la selección anterior, es decir, que hayan seleccionado imágenes que contenga alguna de las palabras clave que se encuentren en la búsqueda. A continuación, se obtendrá el conjunto de los usuarios que estando relacionados (mediante el procedimiento explicado anteriormente), también se encuentren en el conjunto de usuarios que hayan valorado imágenes que contengan las palabras clave de la consulta. Este conjunto que contiene los usuarios relacionados, estará ordenado por la fortaleza entre la unión de ambos.
+
+Así, para cada usuario de este conjunto, y hasta que no se alcance el número de imágenes mínimo, o la relación de usuarios deje de ser lo suficientemente relevante como para considerar que ambos usuarios no están lo suficientemente relacionados, se seleccionará de cada usuario aquella imagen que conteniendo alguna de las palabras clave, haya sido empleada mayor número de veces por el usuario en cuestión. Además el sistema se asegurará de que no se introducen imágenes repetidas en el conjunto de salida.\\
+
+
+\lstinputlisting[texcl, caption = {Algoritmo de recomendación}, language = Python, label = code:algoritmo-recomendacion]{code/algoritmo-recomendacion.py}
+
+El algoritmo que aplica la técnica basada en contenido, en primer lugar obtendrá las imágenes utilizadas por el usuario. Para cada una de estas imágenes comprobará el sitio web en el que se encontraban, elaborando una lista con todos los sitios así como del número de veces que el usuario ha seleccionado una imagen de ese sitio. Tras ordenar esta lista, seleccionará los sitios que han sido más recurridos por el usuario y dentro de los límites que se hayan delimitado para esta técnica, y comprobará si es lo suficientemente relevante, para lo cual comprobará si el número de imágenes que se han extraído de ese portal es superior al doble de la mediana de las veces que ha visitado cada portal.
+
+
+La salida, como se puede comprobar, será un archivo json que será enviado al usuario, para que este pueda tanto realizar la búsqueda de las imágenes en esos portales, como la búsqueda de las imágenes genérica para completar el total de imágenes necesarias para recomendar. Esta búsqueda será realizada y gestionada directamente por el dispositivo del usuario, de manera que se libere de carga al servidor, y disminuya a la vez la carga en la red, lo cual permitirá ahorrar tanto recursos como por consiguiente dinero en caso de que por motivos de la demanda de usuarios y uso sea necesario pasar a hacer uso de algunas versiones de pago de las tecnologías usadas. El orden en el que se le presentarán las imágenes al usuario será tal cual se descarguen en el dispositivo y muestren, es decir, no existirá un orden específico.
+
+\section{Fases de desarrollo}
+
+
+
+
+
+
+
+
+
+
+
+
+
