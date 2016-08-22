@@ -28,7 +28,7 @@ def obtener_imagenes_colaborativo(usuario_id, palabras_clave):
 				if(not (img_candidata in imagenes_colaborativo)):
 					imagenes_colaborativo.append(img_candidata)
 					buscando_imagen = False
-			if(len(a) >= LIMIT_OF_RUSERS):
+			if(len(imagenes_colaborativo) >= LIMIT_OF_RUSERS):
 				break
 		else:
 			break
@@ -42,10 +42,9 @@ def obtener_imagenes_contenido(usuario_id):
 	for imagen_utilizada in imagenes_utilizadas:
 		imagen = imagen_utilizada.imagen.get()
 		sitios[imagen.enlace_sitio] = sitios[imagen.enlace_sitio] + 1
-		enlaces_totales = enlaces_totales + 1
 
 	mediana = calcularMediana(sitios)
-	sitios_ordenados = shorted(sitios, , key=sitios.__getitem__, reverse = True)
+	sitios_ordenados = sorted(sitios, key=sitios.__getitem__, reverse = True)
 
 	for x in range(IMAGES_CONTENT):
 		if sitios[sitios_ordenados[x]] > 2 * mediana:
