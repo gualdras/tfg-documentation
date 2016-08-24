@@ -183,6 +183,302 @@ La salida, como se puede comprobar, será un archivo json que será enviado al u
 
 \section{Fases de desarrollo}
 
+A lo largo de esta sección, se mostrarán las diferentes iteraciones o sprints que se han llevado a cabo para desarrollar este proyecto. Estos sprints se derivan de la planificación inicial establecida en el Capítulo \ref{chap:metodo}, en concreto se puede observar dicha planificación en el cuadro \ref{tab:user-stories}. Para cada sprint se mostrarán las Historias de Usuario que se han seleccionado (Sprint Backlog), mostrando estas en detalle, y desglosándolas en tareas. Se analizarán estas tareas mostrando cuando sea preciso el código desarrollado para implementar esta tarea, así como los diagramas que se considere oportuno para aclarar las diferentes tareas.
+
+\subsection{Sprint 1}
+
+En el sprint planning meeting se ha decidido que para este sprint se realizarán la primera y segunda \ac{HU}. En los cuadros \ref{tab:user-story-1} y \ref{tab:user-story-2} se muestra el Sprint Backlog, con las Historias de Usuario seleccionadas para esta interacción, indicando entre otras cosas los mecanismos de validación, así como las tareas en las que se desglosa, y el tiempo estimado para su realización.
+
+\begin{table}[hp]
+  \centering
+  {\small
+  \input{tables/user-story-1.tex}
+  }
+  \caption{Historia de Usuario 1}
+  \label{tab:user-story-1}
+\end{table}
+
+\begin{table}[hp]
+  \centering
+  {\small
+  \input{tables/user-story-2.tex}
+  }
+  \caption{Historia de Usuario 2}
+  \label{tab:user-story-2}
+\end{table}
+
+\subsubsection{Tarea: Interfaz de instalación}
+
+Será necesario desarrollar una interfaz que se ejecutará tras la instalación de la aplicación en el dispositivo. Consistirá en una ventana en la que aparecerá un cuadro de texto donde escribir el número de teléfono, junto con un desplegable donde aparecen los prefijos internacionales. La aplicación detectará automáticamente la nacionalidad de la tarjeta SIM, fijando directamente el prefijo. Aún así, el usuario podrá seleccionar otro si así lo considera.
+
+Esta pantalla inicial permitirá en un futuro realizar acciones antes de comenzar a ejecutar la aplicación, como registrar al usuario en algún servicio si así fuese necesario.
+
+%TODO captura de pantalla instalación
+
+
+\subsubsection{Tarea: Interfaz genérica de la aplicación}
+
+Esta será la interfaz que el usuario utilizará tras la configuración inicial. Consistirá de una lista donde este podrá ver aquellos usuarios de la misma que el tiene como contactos. En caso de que el usuario tenga asignada una imagen para ese contacto en el teléfono esta será la utilizada por la aplicación. En caso de no tener ninguna imagen asignada se utilizará una por defecto. El nombre del contacto también sera aquel que aparezca en la información del contacto almacenada por el usuario.
+
+Todas aquellas cadenas de texto que aparezcan a lo largo de la interfaz estarán configuradas para que se adapten al idioma por defecto del teléfono. Aunque como ya se comentó al principio, la aplicación está orientada al inglés, se realiza de esta forma en caso de que en un futuro se decida ampliar el alcance de la misma.
+
+
+%TODO caputra de pantalla de intefaz
+
+\subsubsection{Tarea: Diseñar e implementar base de datos local}
+
+Será necesario la utilización de una base de datos local que nos permita almacenar la información relativa a los contactos que el usuario tiene. Se utilizará la clase SQLiteDatabase proporcionada por Android para almacenar los datos. Para el acceso a la base de datos se usará la clase ContentProvider, la cual proveerá de una interfaz para acceder a estos datos, y realizar las operaciones pertinentes. El código referente a la \ac{BBDD} se encuentra en la clase \textit{DavaProvider.java}, en el paquete de persistencia del código referente a la aplicación. A continuación se muestran los campos que componen la tabla referente a los perfiles contactos, la cual se llama profile.
+\begin{itemize}
+\item \textbf{\textunderscore id:} será un entero generado automáticamente de manera incremental, y que será la clave primaria.
+\item \textbf{Name:} Un campo de tipo texto que contendrá el nombre de cada usuario y que será el que se muestre.
+\item \textbf{phoneNumber:} Campo de tipo texto y único. Contendrá el teléfono del usuario.
+\item \textbf{photo:} Campo de tipo texto. Contendrá la ruta relativa al lugar donde se encuentra almacenado el archivo deseado.
+\end{itemize}
+
+Además, la clase ContentProvider proveerá de una funcionalidad muy importante, y es la de que permitirá que cada vez que se modifique la base de datos, automáticamente se actualice la interfaz que presenta los datos relativos a los contactos. 
+
+
+Para este refresco de la interfaz también será necesario hacer uso de clase CursorLoader, que será el encargado de realizar las consultas en segundo plano (evitando bloquear la interfaz) sobre el ContentProvider, y que estará integrado con la interfaz. Este CursorLoader establecerá aquella información que será necesario consultar y retornar.Esta clase a su vez devolverá un cursor, que a su vez proporcionará a las vistas con la información necesaria para actualizarse. En el listado \ref{code:ContactTab} se puede observar como funciona este proceso. Debido a la gran cantidad de código que contenía la clase referente a este listado, se ha eliminado aquello que no se ha considerado relevante, pero como se ha mencionado en la introducción puede consultarse en el CD. 
+
+
+\lstinputlisting[texcl, caption = {Refresco de la interfaz tras modificación \acs{BBDD}}, language = Java, label = code:ContactTab, firstline=38]{code/ContactTab.java}
+
+\subsubsection{Tarea: Simular usuarios para poder probar la interfaz}
+
+Se añadirá la información de los usuarios simulada en la base de datos para comprobar que todo funciona correctamente. Servirá tanto para comprobar que los usuarios se muestran correctamente como para comprobar que las conversaciones también se comportan conforme a lo establecido.
+
+%TODO añadir aquí las 3 capturas de pantalla
+
+\subsubsection{Tarea: Realizar la entrada mediante texto y mediante voz}
+
+En la conversación entre usuarios, estos podrán seleccionar tanto entrada mediante texto como por voz, y podrán intercambiar los métodos durante las mismas en el momento que deseen.
+
+%TODO entrada por voz
+
+\subsubsection{Tarea: Almacenar mensajes y visualizarlos}
+
+Será necesario crear una nueva tabla en la base de datos para los mensajes junto con la tabla de los usuarios. Se seguirá el mismo mecanismo que en el caso de los contactos, actualizando la interfaz de mensajes de manera muy similar a la empleada con los contactos por lo que no se volverá a mostrar el código. La información sobre los campos de esta tabla es la siguiente:
+
+\begin{itemize}
+\item \textbf{\textunderscore id:} será un entero generado automáticamente de manera incremental, y que será la clave primaria.
+\item \textbf{msg:} Campo de tipo texto con el contenido del mensaje. En caso de tratarse de un archivo multimedia contendrá la ruta en la que se encuentra dicho archivo.
+\item \textbf{type:} Tipo texto que indica el tipo del mensaje, texto o imagen en este caso.
+\item \textbf{phoneNumberFrom:} Texto que contiene el número de teléfono que ha enviado el mensaje en caso de ser un mensaje recibido o el propio en caso de ser enviado.
+\item  \textbf{phoneNumberTo:} Es un campo en formato de texto con el número de teléfono del destinatario del mensaje en caso de ser un mensaje enviado o nulo en caso de ser recibido.
+\item \textbf{at:} Campo en formato datatime que contiene el momento en el que se recibió o envió el mensaje. Se establece de manera automática al almacenar un mensaje en la \ac{BBDD}.
+\end{itemize}
+
+
+%TODO añadir captura con conversación.
+
+\subsubsection{Sprint Review}
+
+Durante el Sprint Review se ha evaluado junto con el Product Owner el primer prototipo de la aplicación, quedando este satisfecho con el mismo. 
+
+\subsubsection{Sprint Retrospective}
+
+Una de las cosas que se decide durante esta primera revisión, es empezar a realizar las pruebas de la aplicación en un dispositivo Android real, y terminar con las pruebas en el emulador debido a la lentitud que supone este.Por lo demás se comprueba que todo va correctamente.
+
+\subsection{Sprint 2}
+
+Durante el Sprint Planning Meeting del segundo Sprint, se comprueba que por el momento se va bastante bien respecto a la planificación inicial, por lo que no es necesario realizar ningún cambio. Se ha decidido incluir en el Sprint Backlog las \ac{HU} 3 y 4. Además, durante esta reunión, se presenta la posibilidad de utilizar el servicio Google Cloud Messaging para la parte del envío de mensajes. La idea inicial, era desarrollar el sistema de mensajes completo, haciendo que los usuarios se comunicasen directamente mediante el servidor, sin ningún otro intermediario. Sin embargo, la idea de utilizar este servicio que proporciona Google de manera absolutamente gratuita, y que aporta mayor funcionalidad de la que estaba prevista incluir en un principio se muestra como una muy buena oportunidad. Entre otras cosas, ofrece un sistema muy confiable, y además permite comunicar con otros dispositivos, entre los que se encuentra iOS, permitiendo en un futuro que se pueda integrar esta plataforma con mayor facilidad.
+
+En los cuadros \ref{tab:user-story-3} y \ref{tab:user-story-4} se muestra la información relativa a las las \ac{HU}.
+
+\begin{table}[hp]
+  \centering
+  {\small
+  \input{tables/user-story-3.tex}
+  }
+  \caption{Historia de Usuario 3}
+  \label{tab:user-story-3}
+\end{table}
+
+\begin{table}[hp]
+  \centering
+  {\small
+  \input{tables/user-story-4.tex}
+  }
+  \caption{Historia de Usuario 4}
+  \label{tab:user-story-4}
+\end{table}
+
+
+\subsubsection{Tarea: Desarrollo de una primera versión del servidor}
+
+Se precisa el desarrollo de un servidor que se encargue de gestionar a los usuarios. Se diseñará un servidor basado en la arquitectura REST, utilizando como formatos para el envío de datos JSON.
+
+%TODO añadir los endpoints de los usuarios
+
+\subsubsection{Tarea: Integración con Google Cloud Platform}
+
+El servidor diseñado anteriormente se desplegará utilizando los servicios proporcionados por Google Cloud Platform, en concreto App Engine, en lugar de usar un servidor tradicional. Para ello, es necesario adaptar el servidor a esta tecnología. Entre otras cosas se deben incluir algunos archivos de configuración indicando las dependencias de librerías externas que utilizará la aplicación, y que es necesario desplegar junto con el servidor en el caso de que App Engine no las tenga integradas. Se ha utilizado como base para desplegar este servidor una plantilla proporcionada en la asignatura \textit{Aplicaciones Distribuidas en Internet}, y utiliza Flask framework para la comunicación web.
+
+Se utilizará la librería Google Datastore NDB Client Library para el almacenamiento de los distintos elementos como es la información sobre los usuarios y las imágenes. Los perfiles diseñados para las diferentes entidades se muestran en el listado de código \ref{code:DatastoreEntities} donde se pueden observar los parámetros para cada entidad.
+
+\lstinputlisting[texcl, caption = {Perfiles de las entidades del Datastore}, language = Python, label = code:DatastoreEntities]{code/itemTypes.py}
+
+%TODO añadir algo de código
+
+\subsubsection{Tarea: Estandarizar el formato de los números de teléfono} 
+
+Debido a la problemática de que los usuarios guardan los diferentes teléfonos móviles con diferentes formatos, es necesario estandarizar estos. Muchos usuarios no añaden el prefijo de nacionalidad cuando crean un contacto, ya que por defecto se aplica el prefijo nacional, sin embargo, puede haber usuarios que tengan también contactos de otros países y por tanto precisen indicar la nacionalidad, o que simplemente al guardar un contacto que le ha llamado este se guarde utilizando el prefijo por defecto sin que el usuario lo seleccione. Es por esto, que es necesario aplicar un estándar para estos contactos, ya que a efectos prácticos, si un usuario español tiene guardado un contacto como 612345678, y en el sistema el otro usuario esta dado de alta como +34612345678, estos contactos deberían ser los mismos. En el listado \ref{code:RefreshContact} se puede ver como se realiza el preprocesado así como el envío de estos números preprocesados al servidor, asegurándose de que no se envían aquellos contactos que ya existen en la aplicación ni contactos repetidos para liberar carga del servidor. Al igual que en el caso anterior y en los futuros, se ha eliminado código poco relevante destinado al proceso del JSON de respuesta
+
+\lstinputlisting[texcl, caption = {Actualización de contactos\acs{BBDD}}, language = Java, label = code:RefreshContact, firstline=38]{code/RefreshContactsTask.java}
+
+
+\subsubsection{Tarea: Sincronizar contactos}
+
+Es el servidor el que mantiene actualizada la información de los contactos, y por tanto, el usuario tiene que comunicarse con este para obtener dichos contactos. De esta manera, el servidor recibirá todos los números de teléfono preprocesados previamente por la aplicación móvil, comprobará si existen usuarios registrados con ese número en el sistema, y le devolverá al usuario aquellos que efectivamente se encuentren dados de alta en el sistema. En el listado \ref{code:synchronizeContacts} se muestra la operación realizada en el servidor.
+
+\lstinputlisting[texcl, caption = {Sincronización de contactos}, language = Python, label = code:synchronizeContacts]{code/synchronizeContacts.py}
+
+\subsubsection{Tarea: Diseño de un sistema de mensajes}
+
+Aunque ya se ha realizado un trabajo previo al diseñar la \ac{BBDD} en la aplicación para almacenar los mensajes es necesario establecer un estándar a seguir en estos mensajes. Debido a que se tratará de mensajes tanto de tipo textual como multimedia, es preciso poder realizar esta distinción. Por esta razón, los mensajes estarán compuestos por dos campos, por un lado el contenido del mensaje y por otro el tipo. El tipo indicará como su propio nombre indica el formato que tendrá el mensaje, y el contenido consistirá en el texto enviado si se trata de un mensaje de texto, o si por el contrario se trata de un archivo multimedia un identificador con el que poder descargar este archivo.
+
+En el listado de código \ref{code:MessageItem} se muestra la configuración de la clase java que representa a los mensajes obviando los getter y setter.
+
+\lstinputlisting[texcl, caption = {Clase <<MessageItem.java>>}, language = Java, label = code:MessageItem]{code/MessageItem.java}
+
+\subsubsection{Tarea: Integración de \ac{GCM} con la aplicación}
+
+Se ha utilizado la \ac{API} de \ac{GCM} tanto en el cliente como en el servidor para poder interactuar con este servicio. En primer lugar es necesario obtener un archivo de configuración y añadirlo a la aplicación. Además de añadir las dependencias necesarias para poder utilizar la \ac{API}, también es necesario configurar el proyecto para utilizar los servicios del \acs{SDK} de Google Play Service, y asegurarse de que el dispositivo donde se instala tiene disponibles estos servicios. Es necesario también configurar el Manifest de la aplicación e incluir una serie de permisos, así como de servicios que se ejecutarán en segundo plano y que gestionarán entre otras cosas los mensajes que llegan así como los tokens o identificadores necesarios para poder enviar los mensajes, aunque la aplicación no este ejecutándose.
+
+Cada vez que la aplicación se instale en el dispositivo, será necesario registrar este dispositivo con los servidores de conexión de \ac{GCM}. Para ello se solicitará un token o testigo que será necesario para enviar mensajes a ese usuario en cuestión, por lo que será necesario enviarlo al servidor donde se almacenará.
+
+En el listado de código \ref{code:GcmListenerService} se muestra el código que se ejecutaría cada vez que se recibe un mensaje.
+
+\lstinputlisting[texcl, caption = {Recepción de un mensaje}, language = Java, label = code:GcmListenerService]{code/MyGcmListenerService.java}
+
+\subsubsection{Tarea: Integración de \ac{GCM} con el servidor}
+
+También es necesario integrar la \ac{API} de \ac{GCM} para python en el servidor. Para ello es necesario añadir esta la librería en una carpeta en la que se encuentran todas las librerías que se utilizan en el servidor. Para que no sea necesario añadir esta librería a mano cada vez que se realicen cambios en estas, es preciso indicarlo en el archivo \texttt{requirements.txt}. El servidor será el encargado de enviar hacia el destinatario adecuado el mensaje recibido por el usuario que lo ha enviado. Este usuario ha indicado el número de teléfono al que se lo quiere enviar, y es tarea del servidor relacionar el número con el token que el usuario ha registrado previamente en el servidor, y enviárselo.
+
+Se muestra el código relativo al envío del mensaje al destinatario del mismo por parte del servidor en el listado \ref{code:sendMessage}.
+
+\lstinputlisting[texcl, caption = {Envío del mensaje por parte del servidor}, language = Python, label = code:sendMessage]{code/sendMessage.py}
+
+\subsubsection{Sprint Review}
+
+Durante esta reunión se han mostrado los avances, y el Product Owner ha podido comprobar por sí mismo como la aplicación sincroniza los contactos, además de observar como funciona el envío de mensajes entre varios dispositivos.
+
+\subsubsection{Sprint Retrospective}
+
+Se ha evaluado el trabajo realizado, y se ha acordado que es necesario un mayor aprendizaje sobre la plataforma Google Cloud Platform para aprovechar en el mayor grado posible las herramientas y ventajas que ofrece. Pese a que se ha conseguido desplegar el servidor es necesario aprender sobre el manejo de otras herramientas como los registros, o las consultas sobre el Datastore. También se ha discutido el hecho de que se ha producido un retraso debido a la integración de \ac{GCM} la cual ha requerido mas tiempo del que se había previsto en un principio.
+
+
+\subsection{Sprint 3}
+
+Para este Sprint, en la reunión previa se ha acordado que se realizará únicamente la \ac{HU} 5. Debido al retraso provocado por el anterior Sprint se desea presentar cuanto antes un avance notorio y significativo para entregar al cliente, y se considera que el hecho de enviar y recibir mensajes será un avance que el Product Owner valorará muy positivamente. Se muestran en el cuadro \ref{tab:user-story-5} la \ac{HU} seleccionada que conforma el Sprint Backlog  de esta iteración.
+
+\begin{table}[hp]
+  \centering
+  {\small
+  \input{tables/user-story-5.tex}
+  }
+  \caption{Historia de Usuario 5}
+  \label{tab:user-story-5}
+\end{table}
+
+
+\subsubsection{Tarea: Integración del Blobstore con el servidor}
+
+Al igual que el Datastore, el Blobstore es un servicio proporcionado por Google App Engine, por lo que no es necesaria la descarga de ninguna \ac{API} adicional. Antes de nada, los blobs son contenedores que permiten almacenar archivos que exceden el tamaño permitido por el Datastore. Estos se usarán para almacenar aquellas imágenes que se decida incluir en el repositorio de imágenes propio que se creará. Para subir un archivo a un blob, en primer lugar es necesario realizar una petición para obtener una dirección a la que subir el archivo deseado. Posteriormente será necesario mediante un formulario web enviar el archivo multimedia deseado junto con la información que se considere oportuna a la dirección generada previamente. Será necesario implementar un manejador que será el encargado de a partir de los datos proporcionados por el usuario, almacenará el recurso en un blob, el cual generará una clave que será la que se utilizará para recuperar el archivo del blob. En este caso, se creará una entidad imagen en el servidor estableciendo como clave única de esta entidad la clave del blob generada. Posteriormente se actualizará la información correspondiente a la imagen utilizando esta clave.
+
+
+En el listado \ref{code:CreateBlob} se muestra como el servidor manejaría las diferentes peticiones en primer lugar para obtener una dirección sobre la que subir el archivo, y en segundo lugar como este servidor gestiona el envío de un formulario por parte la aplicación cliente.
+
+\lstinputlisting[texcl, caption = {Gestión por parte del servidor de la creación de blobs}, language = Python, label = code:CreateBlob]{code/createBlob.py}
+
+
+\subsubsection{Tarea: Almacenamiento de imágenes en Blobs}
+
+Como se ha mencionado anteriormente, es necesario que la aplicación cliente solicite en primer lugar la generación de una dirección \acs{URL} sobre la que posteriormente este mismo usuario subirá un formulario web que contenga la imagen que desea subir. En el listado de código \ref{code:UploadImage} se muestra este proceso. Es necesario indicar que debido a que aún no se ha añadido la funcionalidad de recurrir a imágenes que se encuentren en la red, se realizarán las pruebas con imágenes que los usuarios tengan en sus dispositivos.
+
+\lstinputlisting[texcl, caption = {Envío de la imagen al servidor para su almacenamiento}, language = Java, label = code:UploadImage]{code/UploadImageTask.java}
+
+
+\subsubsection{Tarea: Enviar imágenes a otros usuarios}
+
+Al igual que se ha hecho anteriormente con los mensajes es necesario ser capaces de enviar las imágenes. Como ya se ha indicado, lo que se enviará será la dirección que se necesita para descargarla. En concreto se enviará la clave del blob que identifica a esta imagen, y que permitirá enviarla al servidor el cual se encargará de devolvernos la imagen. En el listado \ref{code:DownloadImage} se muestra como el servidor retorna la imagen a partir de la clave del blob.
+
+\lstinputlisting[texcl, caption = {Envío de la imagen desde el servidor al cliente}, language = Python, label = code:DownloadImage]{code/downloadImage.py}
+
+\subsubsection{Tarea: Descargar y almacenar imágenes en local}
+
+Cada vez que llegue una imagen a través de un mensaje, se detectará a partir de la información que contenga el tipo de mensaje, y se procederá a descargar y almacenar su contenido. Esto se realiza mediante la clase \texttt{ReceivedImageDownloadTask.java}. En el listado \ref{code:ReceivedImageDownloadTask} se muestra el proceso a seguir.
+
+\lstinputlisting[texcl, caption = {Descarga y almacenamiento de la imagen en el cliente}, language = Java, label = code:ReceivedImageDownloadTask]{code/ReceivedImageDownloadTask.java}
+
+\subsubsection{Sprint Review}
+
+Se ha mostrado el avance al Product Owner el cual ha comprobado que el proyecto va tomando forma, y promete.
+
+\subsubsection{Sprint Retrospective}
+
+El tiempo perdido durante el anterior Sprint se ha conseguido recuperar en parte a lo largo de esta iteración. Además, la estructura del sistema está más consolidada.
+
+\subsection{Sprint 4}
+
+Debido al haber realizado el anterior Sprint en menor tiempo del previsto, se decide acometer para esta iteración con las \ac{HU} 6 y 8. Esto se debe a que no se pueden acometer al mismo tiempo las historias 5 y 6 debido a que ambas son demasiado complejas y se tardaría demasiado en proporcionar un producto con avances. Estas \ac{HU} se muestran en los cuadros \ref{tab:user-story-6}
+
+\begin{table}[hp]
+  \centering
+  {\small
+  \input{tables/user-story-6.tex}
+  }
+  \caption{Historia de Usuario 6}
+  \label{tab:user-story-6}
+\end{table}
+
+
+\subsubsection{Tarea: Búsqueda de imágenes en diferentes portales}
+
+Debido a que se necesitarán imágenes que representen las diferentes necesidades de los usuarios, y ya que no se está en posesión de un conjunto de estas imágenes, será necesario recurrir a otras fuentes. Para ello, se configurará el motor de búsqueda Google Custom Search Engine, el cuál permite realizar búsquedas en los dominios web que se le indiquen. Se utilizarán dominios que provean de imágenes con libre licencia de uso, ya que se utilizarán estas imágenes y se almacenarán en un servidor propio. Para utilizar este servicio es necesario la creación de un motor de búsqueda, lo cual resulta bastante sencillo, y posteriormente obtener una serie de credenciales que se utilizarán para tener acceso a estos servicios de búsqueda. Se configurará el motor de búsqueda con los sitios en los que se desea realizar estas, y será posible cambiar los sitios de manera dinámica sin que las aplicaciones de usuario o el servidor tengan que sufrir cambio ninguno. Además, en las búsquedas se podrán especificar de manera personalizada y en función de ciertos parámetros los sitios web en los que se realiza. Se utilizará la \ac{API} CustomSearch disponible para java debido a que esto nos ahora el tener que estar tratando los datos que se envían y reciben en esta búsqueda, si no que con la esta \ac{API} los tendremos directamente en formato java listo para utilizar, siendo más sencillo la recuperación y codificación de estos.
+
+En el listado \ref{code:CustomSearch} se puede observar como mediante una clave, y el identificador \texttt{cx} que indica el motor de búsqueda a seleccionar (debido a que se pueden utilizar varios configurados con perfiles diferentes), se realiza la búsqueda mediante una entrada en modo texto. Además se le pueden indicar los sitios exactos donde debe buscar, en caso de que la consulta así lo requiera.
+
+\lstinputlisting[texcl, caption = {Búsqueda de imágenes utilizando Custom Search}, language = Java, label = code:CustomSearch]{code/CustomSearch.java}
+
+Además, se añadirán al servidor los pictogramas proporcionados por ARASAAC.
+
+\subsubsection{Tarea: Extraer información de las imágenes seleccionadas}
+
+Para poder utilizar estas imágenes en el futuro dentro del sistema de recomendación, será necesario extraer información de las mismas. Para este propósito se utilizará Google Cloud Vision. Cloud Vision es una \ac{API} integrada en los servicios proporcionados por Google Cloud Platform la cual permite extraer entre otras cosas información relativa a imágenes tales como etiquetas junto con la probabilidad estimada por este sistema de que se adapten a la realidad. Proporcionan otras funcionalidades, pero en este caso la que resulta de utilidad es esta.
+
+Se  muestra el proceso seguido para realizar la extracción de la información a una imagen mediante esta \ac{API} en el listado \ref{code:ImageLabelDetectionTask}.
+
+\lstinputlisting[texcl, caption = {Búsqueda de imágenes utilizando Custom Search}, language = Java, label = code:ImageLabelDetectionTask]{code/ImageLabelDetectionTask.java}
+
+\subsubsection{Tarea: Integrar la búsqueda y el envío de imágenes}
+
+Es necesario, que cuando se seleccione una imagen que procede de la web, se comprueba si ya existe esa imagen en el repositorio local para no volver a subirla y así no desperdiciar recursos. Además, cuando se seleccione una de estas imágenes será necesario enviarla utilizando los mecanismos desarrollados en la iteración anterior.
+
+%TODO comprobar si existe
+
+%TODO añadir diagrama con lo de las imágenes
+
+ 
+\subsubsection{Tarea: Limpieza de la entrada}
+
+Como ya se comento en la sección \ref{
+
+
+\subsubsection{Sprint Review}
+
+\subsubsection{Sprint Retrospective}
+
+\subsection{Sprint }
+
+\subsubsection{Tarea: }
+\subsubsection{Sprint Review}
+
+\subsubsection{Sprint Retrospective}
+
+
+
+
 
 
 
