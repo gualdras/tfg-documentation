@@ -17,7 +17,7 @@ Como se ha mencionado anteriormente \textit{``Scrum no es un proceso o una técn
 
 \subsubsection{Roles en Scrum}
 
-Como se ha mencionado anteriormente, solo aquellos miembros que se encuentren dentro del proyecto serán los encargados de tomar decisiones que afecten a dicho proyecto, sin intervención de terceras personas ajenas a este. Así pues, el equipo de Scrum es auto-suficiente y auto-organizado, y es este equipo el encargado de tomar todas las decisiones que afecten a este desarrollo. Scrum define tres grandes roles dentro de su estructura, aunque luego pueda existir una distribución más amplia dentro de estos.
+Como se ha mencionado anteriormente, solo aquellos miembros que se encuentren dentro del proyecto serán los encargados de tomar decisiones que afecten a dicho proyecto, sin intervención de terceras personas ajenas a este. Así pues, el equipo de Scrum es auto-suficiente y auto-organizado, y es este equipo el encargado de tomar todas las decisiones que afecten a este desarrollo. Scrum define tres grandes roles dentro de su estructura, tal y como se muestra en la Figura \ref{fig:scrum-roles}, aunque luego pueda existir una distribución más amplia dentro de estos.
 
 \begin{itemize}
 \item \textbf{Product Owner (Propietario del producto):} Es la persona que representa al cliente y a los stakeholders (o personas interesadas en el producto). Es el encargado de maximizar el valor del producto, asegurándose de que las necesidades se cumplen de la manera más exitosa posible. Para se encarga de redactar las Historias de usuario, dotarlas de prioridad y añadirlas al Product Backlog.
@@ -41,7 +41,8 @@ El Sprint es la piedra angular en Scrum. Representa un bloque de tiempo de una a
 
 \subsubsection{Eventos}
 
-Del concepto de Sprint se derivan una serie de eventos relacionados con este. En la figura \ref{fig:scrum-framework} se puede observar el esquema que se seguiría para cada Sprint.
+Del concepto de Sprint se derivan una serie de eventos relacionados con este. En la 
+Figura \ref{fig:scrum-framework} se puede observar el esquema que se seguiría para cada Sprint.
 \begin{itemize}
 \item \textbf{Sprint Planning Meeting (Reunión de planificación del Sprint):} Esta reunión se lleva a cabo al comienzo de cada Sprint, y en ella se decide como se va a organizar el Sprint, estableciendo que elementos del Product Backlog se van a desarrollar, así como periodos y plazos. La duración máxima es de unas cuatro horas para los Sprint de 2 semanas y ocho para los Sprint de un mes.
 \item \textbf{Daily Scrum (Scrum Diario):} Durante esta reunión diaria de unos quince minutos aproximadamente, se evalúa el trabajo realizado desde el ultimo Daily Scrum, se plantea el objetivo para ese día, y se evalúan los posibles problemas o dificultades que puedan afectar a la consecución del objetivo.
@@ -77,7 +78,7 @@ En primer lugar es preciso identificar al equipo Scrum, el cual pese a no ser re
 \item Scrum Master: Jesús Serrano Guerrero
 \end{itemize}
 
-En segundo lugar, se precisa la realización de una primera versión del Product Backlog \ref{tab:user-stories} de manera que el grupo de desarrollo pueda comenzar a trabajar en el proyecto. En esta tabla, las historias de usuario se encuentran ordenadas según la prioridad que tienen para el proyecto. Esto quiere decir que se tendrán que desarrollar en el orden establecido, debido a que son las que mayor valor aportan al negocio, y son necesarias para las siguientes tareas.
+En segundo lugar, se precisa la realización de una primera versión del Product Backlog tal y como se muestra en la Figura \ref{tab:user-stories} de manera que el grupo de desarrollo pueda comenzar a trabajar en el proyecto. En esta tabla, las historias de usuario se encuentran ordenadas según la prioridad que tienen para el proyecto. Esto quiere decir que se tendrán que desarrollar en el orden establecido, debido a que son las que mayor valor aportan al negocio, y son necesarias para las siguientes tareas.
 
 \begin{table}[hp]
   \centering
@@ -135,7 +136,7 @@ JSON que son las siglas para JavaScript Object Notation, es un lenguaje de forma
 
 \subsubsection{Android Studio}
 
-Como se mencionó en la sección \ref{chap:intro}, se pretende desarrollar una aplicación para dispositivos Smartphones con \acs{SO} Android, y por tanto es recomendable disponer de un \acs{IDE} que nos ayude en esta tarea, y uno de estos entornos es Android Studio\footnote{https://developer.android.com/studio/index.html}. Pese a que existen otros entornos de desarrollo que nos pueden ayudar también para este propósito, como Eclipse utilizando el plugin \acs{ADT}\footnote{https://marketplace.eclipse.org/content/android-development-tools-eclipse}, se ha decidido utilizar Android Studio debido a ser el \acs{IDE} oficial para el desarrollo de aplicaciones Android y por tanto, proporcionar la seguridad de que siempre estará actualizado y contendrá todo lo necesario para poder desarrollar estas aplicaciones, y además por la gran lista de funcionalidades y facilidades que aporta. Algunas de estas utilidades son su integración con Gradle\footnote{https://gradle.org/} para la gestión de dependencias, la automatización de la compilación y el despliegue de las aplicaciones, un editor de código inteligente y auto completado, emulador integrado, herramientas que ayudan al depurado y al testing, y muchas otras opciones como la integración con sistemas de control de versiones.
+Como se mencionó en la sección \ref{chap:intro}, se pretende desarrollar una aplicación para dispositivos Smartphones con \acs{SO} Android, y por tanto es recomendable disponer de un \acs{IDE} que nos ayude en esta tarea, y uno de estos entornos es Android Studio\footnote{https://developer.android.com/studio/index.html}. Pese a que existen otros entornos de desarrollo que nos pueden ayudar también para este propósito, como Eclipse utilizando el plugin Android Developments Tools \footnote{https://marketplace.eclipse.org/content/android-development-tools-eclipse}, se ha decidido utilizar Android Studio debido a ser el \acs{IDE} oficial para el desarrollo de aplicaciones Android y por tanto, proporcionar la seguridad de que siempre estará actualizado y contendrá todo lo necesario para poder desarrollar estas aplicaciones, y además por la gran lista de funcionalidades y facilidades que aporta. Algunas de estas utilidades son su integración con Gradle\footnote{https://gradle.org/} para la gestión de dependencias, la automatización de la compilación y el despliegue de las aplicaciones, un editor de código inteligente y auto completado, emulador integrado, herramientas que ayudan al depurado y al testing, y muchas otras opciones como la integración con sistemas de control de versiones.
 
 \begin{figure}[!h]
 \begin{center}
@@ -167,6 +168,11 @@ De la gran cantidad de recursos que ofrece \acs{GCP} se explicarán los siguient
 
 %TODO App Engine
 
+
+\textbf{Google App Engine}
+
+App Engine es el servicio \ac{PaaS} de Google, y permite almacenar y desplegar servicios web que serán gestionados en servidores propios de Google. Una de las grandes ventajas que proporciona es la de desarrollar aplicaciones que escalan automáticamente, además de numerosos servicios entre los que se encuentra los que se verán a continuación, como son el Datastore o el Blobstore.
+
 \textbf{Google Cloud Datastore}
 
 Google Cloud Datastore\footnote{https://cloud.google.com/datastore/docs/} es una base de datos NoSQL creada para escalar de manera automática, presentar un alto rendimiento y facilitar el desarrollo de aplicaciones. Los datos que se encuentran en el Datastore son accedidos mediante las denominadas \textit{transacciones}, que cumplen las características \acs{ACID} de atomicidad, consistencia, aislamiento y persistencia. Ofrece consistencia fuerte cuando se trata de operaciones que se realizan mediante claves y ancestros, y consistencia eventual en el resto de los casos. Estas transacciones también ofrecen toda las operaciones \acs{CRUD} de crear, leer, actualizar y eliminar. Google Datastore proporciona numerosos mecanismos para realizar estas transacciones, desde una librería JSON, clientes de código abierto o herramientas mantenidas por los usuarios como NDB o Objectify. Además de las características \acs{ACID}, ofrece también:
@@ -180,7 +186,7 @@ Google Cloud Datastore\footnote{https://cloud.google.com/datastore/docs/} es una
 \item Administración automática: Google se encarga de todo el mantenimiento.
 \end{itemize} 
 
-Como se ha mencionado anteriormente, Cloud Datastore es una base de datos NoSQL y que no se corresponde con el sistema relacional de gestión de base de datos. Existen algunas diferencias ya en los conceptos que estos tratan como se puede apreciar en la tabla \ref{tab:datastore-rdbms}. A diferencia de las filas de una misma tabla en los sistemas relacionales, una entidad de Google Datastore puede tener diferentes campos respecto a otra entidad del mismo tipo, o pueden tener propiedades con el mismo nombre y tipos diferentes. 
+Como se ha mencionado anteriormente, Cloud Datastore es una base de datos NoSQL y que no se corresponde con el sistema relacional de gestión de base de datos. Existen algunas diferencias ya en los conceptos que estos tratan como se puede apreciar en el Cuadro \ref{tab:datastore-rdbms}. A diferencia de las filas de una misma tabla en los sistemas relacionales, una entidad de Google Datastore puede tener diferentes campos respecto a otra entidad del mismo tipo, o pueden tener propiedades con el mismo nombre y tipos diferentes. 
 
 \begin{table}[hp]
   \centering
@@ -204,6 +210,8 @@ Google Datastore se utilizará para almacenar los datos relativos a los usuarios
 Blobstore\footnote{https://cloud.google.com/appengine/docs/python/blobstore/} es un servicio proporcionado por Google Cloud Platform y que accedido mediante una \acs{API} disponible en los lenguajes Python, Java y Go permite almacenar ficheros de un tamaño superior al permitido por el servicio de Google Datastore. Los ficheros se suben en forma de blobs, los cuales se crean indirectamente. En primer lugar  es necesario solicitar mediante una llamada a la \acs{API} la generación de una \acs{URL}, posteriormente la aplicación cliente podrá proceder a la subida del archivo mediante un formulario web o algún otro tipo de petición \acs{HTTP} POST. Tras enviar el formulario con el fichero, el servicio Blobstore almacena el archivo y genera una clave para poder recuperar posteriormente el archivo almacenado en el blob. Tras la creación del blob, este puede ser modificado o eliminado, y mantiene un registro con metadatos relativos a su creación, tipo y modificaciones.
 
 Este servicio se usará en la aplicación para almacenar las imágenes que los usuarios envíen unos a otros y para almacenar las imágenes propias de las que se dispondrá antes de que la aplicación comience a ser utilizada por los usuarios.
+
+
 
 \textbf{Cloud Vision API}
 
